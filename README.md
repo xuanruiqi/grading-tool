@@ -13,11 +13,7 @@ send_email: Xuanrui Qi <me@xuanruiqi.com> # Your email address
 cc: # People to CC on grade emails
   - Xuanrui Qi <xuanrui@nagoya-u.jp>
 smtp: # SMTP server configuration
-  address: smtp.nagoya-u.jp
-  port: 465
-  user_name: sz5809558
-  authentication: plain
-  tls: true
+  ...
 ```
 For the SMTP server configuration, see [this page](https://www.rubydoc.info/gems/mail/Mail/SMTP) for the available fields.
 However, don't enter your password in clear text here. This tool will prompt you for the password each time.
