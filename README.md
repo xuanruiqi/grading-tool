@@ -48,7 +48,6 @@ Finally, `./send [path-to-folder] [-v]` to send students their grades, and `./re
 
 ## WIP
   * We can only handle one course at this time. Can we fix this?
-  * Refactor the code to use `highline` for all prompts.
   * Currently, we can't handle parts of exercises. Need to make score nested.
   * You must enter the student's email in each submission file. This needs to be fixed.
   * Grade management, interfacing with spreadsheets/CSV.
