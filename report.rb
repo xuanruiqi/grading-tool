@@ -1,9 +1,11 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
+
 require_relative 'processing'
 
-if $PROGRAM_NAME == __FILE__ then
-  if ARGV.length < 1 then
-    puts "Usage: report [path to folder containing grading files]"
+if $PROGRAM_NAME == __FILE__
+  if ARGV.length.empty?
+    puts 'Usage: report [path to folder containing grading files]'
     exit 0
   end
 
