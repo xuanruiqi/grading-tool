@@ -21,6 +21,26 @@ def find_course_config
   filename
 end
 
+def prompt_smtp(cli)
+  smtp_conf = {}
+
+  smtp_conf[:address] = cli.ask 'SMTP server address: '
+  smtp_conf[:port] = cli.ask('SMTP port: ', Integer)
+  smtp_conf[:user_name] = cli.ask 'SMTP username: '
+
+  # only support PLAIN, which should be good for most people (maybe not outlook)
+
+  auth_req = cli.ask('Authentication (login) required? (y/n) ') { |a| a.validate = /y|n/ }
+
+  if auth_req
+    smtp_conf[:authentication] = 'plain'
+    smtp_conf[:enable_starttls_auto] = cli.ask('STARTTLS? (y/n) ') { |a| a.validate = /y|n/ }
+    smtp_conf[:tls] = cli.ask('TLS on a dedicated port? (y/n) ') { |a| a.validate = /y|n/ }
+  else
+    smtp_conf[:authentication] = nil
+  end
+end
+
 if $PROGRAM_NAME == __FILE__
   if ARGV.length.empty?
     puts 'Usage: send [path to folder containing grading files] [-v]'
@@ -54,22 +74,15 @@ if $PROGRAM_NAME == __FILE__
   end
   # If any of the above fields is null, ask for course title, sender email, etc., interactively
 
-  if course_title == ''
-    print 'Title of the course: '
-    course_title = STDIN.gets.chomp
-  end
-
-  if sender_email == ''
-    print 'Your email address: '
-    sender_email = STDIN.gets.chomp
-  end
+  course_title = 'Title of the course: ' if course_title == ''
+  sender_email = prompt 'Your email address: ' if sender_email == ''
 
   if cc_email == ''
     cc_list = []
 
     loop do
-      print 'Any more email addresses to cc? Enter one at a time. If none, just press enter: '
-      cc_new = STDIN.gets.chomp
+      cc_new = cli.ask 'Any more email addresses to cc? Enter one at a time.' \
+                       'If none, just press enter: '
       break if cc_new == ''
     end
 
@@ -79,64 +92,8 @@ if $PROGRAM_NAME == __FILE__
   emails = gen_all_emails(course_title, assgn, sender_email, cc_email)
   save_all_emails(ARGV[0], emails) unless ARGV.length < 2 || ARGV[1] != '-v'
 
-  # if there's no SMTP config then interactively ask
-  if smtp_conf.nil?
-    smtp_conf = {}
-
-    print 'SMTP server address: '
-    smtp_conf[:address] = STDIN.gets.chomp
-    print 'SMTP port: '
-    smtp_conf[:port] = STDIN.gets.chomp.to_i
-    print 'SMTP username: '
-    smtp_conf[:user_name] = STDIN.gets.chomp
-
-    # only support PLAIN, which should be good for most people (maybe not outlook)
-    loop do
-      print 'Authentication (login) required? (y/n) '
-      auth = STDIN.gets.chomp
-
-      if auth == 'y'
-        smtp_conf[:authentication] = 'plain'
-
-        loop do
-          print 'STARTTLS? (y/n)'
-          starttls = STDIN.get.chomp
-
-          if starttls == 'y'
-            smtp_conf[:enable_starttls_auto] = true
-            break
-          elsif starttls == 'f'
-            smtp_conf[:enable_starttls_auto] = false
-            break
-          else
-            puts 'Please answer y or n!'
-          end
-        end
-
-        loop do
-          print 'TLS on a dedicated port? (y/n)'
-          starttls = STDIN.get.chomp
-
-          if starttls == 'y'
-            smtp_conf[:tls] = true
-            break
-          elsif starttls == 'f'
-            smtp_conf[:tls] = false
-            break
-          else
-            puts 'Please answer y or n!'
-          end
-        end
-
-        break
-      elsif auth == 'n'
-        smtp_conf[:authentication] = nil
-        break
-      else
-        puts 'Please answer y or n!'
-      end
-    end
-  end
+  # if there's no SMTP config then interactively create one
+  smtp_conf = prompt_smtp cli if smtp_conf.nil?
 
   unless smtp_conf[:authentication].nil?
     cli = HighLine.new
@@ -161,19 +118,13 @@ if $PROGRAM_NAME == __FILE__
     puts 'TLS on a dedicated port enabled.' if smtp_conf[:tls] == true
     puts ''
 
-    loop do
-      print 'Does this look good? (y/n) '
-      ans = STDIN.gets.chomp
+    cont = cli.ask('Does this look good? (y/n) ') { |a| a.validate = /y|n/ }
 
-      if ans == 'y'
-        puts 'OK, proceeding to send emails...'
-        break
-      elsif ans == 'n'
-        puts 'OK, aborting send...'
-        exit 1
-      else
-        puts 'Please answer y or n!'
-      end
+    if cont
+      puts 'OK, proceeding to send emails...'
+    else
+      puts 'OK, aborting send...'
+      exit 1
     end
   end
 
