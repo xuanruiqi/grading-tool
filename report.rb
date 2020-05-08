@@ -4,7 +4,7 @@
 require_relative 'processing'
 
 if $PROGRAM_NAME == __FILE__
-  if ARGV.length.empty?
+  if ARGV.empty?
     puts 'Usage: report [path to folder containing grading files]'
     exit 0
   end

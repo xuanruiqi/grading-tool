@@ -32,17 +32,19 @@ def prompt_smtp(cli)
 
   auth_req = cli.ask('Authentication (login) required? (y/n) ') { |a| a.validate = /y|n/ }
 
-  if auth_req
+  if auth_req == 'y'
     smtp_conf[:authentication] = 'plain'
-    smtp_conf[:enable_starttls_auto] = cli.ask('STARTTLS? (y/n) ') { |a| a.validate = /y|n/ }
-    smtp_conf[:tls] = cli.ask('TLS on a dedicated port? (y/n) ') { |a| a.validate = /y|n/ }
+    smtp_conf[:enable_starttls_auto] = (cli.ask('STARTTLS? (y/n) ') { |a| a.validate = /y|n/ }) == yes
+    smtp_conf[:tls] = (cli.ask('TLS on a dedicated port? (y/n) ') { |a| a.validate = /y|n/ }) == yes
   else
     smtp_conf[:authentication] = nil
   end
+
+  smtp_conf
 end
 
 if $PROGRAM_NAME == __FILE__
-  if ARGV.length.empty?
+  if ARGV.empty?
     puts 'Usage: send [path to folder containing grading files] [-v]'
     puts 'Use -v only if you want a full report, showing the score of each student.'
     puts 'All other command line options are ignored.'
@@ -57,7 +59,7 @@ if $PROGRAM_NAME == __FILE__
     # print_all_emails_text assgn
   end
 
-  puts '\nPreparing emails...'
+  puts "\nPreparing emails..."
 
   course_title = ''
   sender_email = ''
@@ -74,14 +76,16 @@ if $PROGRAM_NAME == __FILE__
   end
   # If any of the above fields is null, ask for course title, sender email, etc., interactively
 
+  cli = HighLine.new
+  
   course_title = 'Title of the course: ' if course_title == ''
-  sender_email = prompt 'Your email address: ' if sender_email == ''
+  sender_email = cli.ask 'Your email address: ' if sender_email == ''
 
   if cc_email == ''
     cc_list = []
 
     loop do
-      cc_new = cli.ask 'Any more email addresses to cc? Enter one at a time.' \
+      cc_new = cli.ask 'Any more email addresses to cc? Enter one at a time. ' \
                        'If none, just press enter: '
       break if cc_new == ''
     end
@@ -102,7 +106,7 @@ if $PROGRAM_NAME == __FILE__
   end
 
   unless ARGV.length < 2 || ARGV[1] != '-v'
-    puts 'Review SMTP settings:'
+    puts "\nReview SMTP settings:"
     puts "SMTP server: #{smtp_conf[:address]}"
     puts "SMTP port: #{smtp_conf[:port]}"
     puts "SMTP username: #{smtp_conf[:user_name]}"
@@ -120,7 +124,7 @@ if $PROGRAM_NAME == __FILE__
 
     cont = cli.ask('Does this look good? (y/n) ') { |a| a.validate = /y|n/ }
 
-    if cont
+    if cont == 'y'
       puts 'OK, proceeding to send emails...'
     else
       puts 'OK, aborting send...'

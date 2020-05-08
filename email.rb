@@ -11,7 +11,7 @@ def email_name(name)
 end
 
 def email_text(hw_name, submission)
-  per_exercise = ''
+  per_exercise = +''
   (0..(submission.score.length - 1)).each do |i|
     per_exercise.concat "Exercise #{i + 1}: #{submission.score[i]} pts\n"
   end
