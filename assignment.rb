@@ -9,26 +9,27 @@ class Assignment
   #              @num_exercises.
   # @submissions: an array of submissions
 
-  def initialize(name, num_exercises, max_points, submissions)
+  def initialize(name, num_exercises, max_points, students)
     @name = name
     @num_exercises = num_exercises
     @max_points = max_points
     @total_max_points = @max_points.reduce :+
-    @submissions = submissions
+    @students = []
+    @submissions = {}
   end
 
-  attr_reader :name, :num_exercises, :max_points, :total_max_points, :submissions
+  attr_reader :name, :num_exercises, :max_points, :total_max_points, :students, :submissions
 
-  def add_submission(submission)
+  def add_submission(student, submission)
     if submission.score.length != @num_exercises
-      raise "Invalid homework: #{submission.student}'s homework has the wrong" \
+      raise "Invalid homework: #{student.name}'s homework has the wrong" \
             'number of exercises!'
     end
 
     (0..(@max_points.length - 1)).each do |i|
       next if submission.score[i] <= @max_points[i] # +1 to fix the indexing
 
-      raise "Invalid homework: on exercise #{i + 1}, #{submission.student} got a higher " \
+      raise "Invalid homework: on exercise #{i + 1}, #{student.name} got a higher " \
             'score than the maximum possible!'
     end
 
@@ -77,6 +78,19 @@ class Assignment
   end
 end
 
+# A student
+class Student
+  # @name: name of student
+  # @email: email address of student
+  def initialize(name, email)
+    @name = name
+    @email = email
+  end
+
+  attr_reader :name, :email
+  
+end
+
 # A submission to an assignment
 class Submission
   # @student: name of student
@@ -85,9 +99,7 @@ class Submission
   #         The length of this array must be equal to @num_exercises in the Assignment the
   #         Submission belongs to.
   # @comments: a string which is the comment to be sent to the student
-  def initialize(student, email, score, comments)
-    @student = student
-    @email = email
+  def initialize(score, comments)
     @score = score
     @total = @score.reduce :+
     @comments = comments

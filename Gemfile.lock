@@ -1,6 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    highline (2.0.3)
     mail (2.7.1)
       mini_mime (>= 0.1.1)
     mini_mime (1.0.2)
@@ -9,6 +10,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  highline!
   mail!
 
 BUNDLED WITH

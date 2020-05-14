@@ -12,10 +12,22 @@ def read_config(filename)
           "exercises, but you listed #{conf[:score].length} exercises!"
   end
 
-  Assignment.new(conf['assignment'], conf['num_exercises'], conf['score'], [])
+  Assignment.new(conf['assignment'], conf['num_exercises'], conf['score'])
+end
+
+def read_students(filename)
+  students = File.open(filename, 'r') { |f| YAML.safe_load f }
+
+  student_list = []
+  
+  students.each do |nm, email|
+    student_list << Student.new(nm, email)
+  end
+
+  student_list
 end
 
 def read_submission(filename)
   hw = File.open(filename, 'r') { |f| YAML.safe_load f }
-  Submission.new(hw['name'], hw['email'], hw['score'], hw['comments'])
+  Submission.new(hw['name'], hw['score'], hw['comments'])
 end
